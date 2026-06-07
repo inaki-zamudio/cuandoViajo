@@ -138,6 +138,8 @@ _CLOSING = {
 }
 
 model, meta = init_model()
+predictor._MODEL = model
+predictor._META  = meta
 historical_df = init_data(meta)
 
 station_sequences: dict = meta["station_sequences"]
