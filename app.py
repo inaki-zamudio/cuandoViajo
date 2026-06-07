@@ -49,6 +49,8 @@ if "last_result" not in st.session_state:
     st.session_state["last_result"] = None
 if "last_suggestion" not in st.session_state:
     st.session_state["last_suggestion"] = None
+if "last_params" not in st.session_state:
+    st.session_state["last_params"] = None
 
 # ---------------------------------------------------------------------------
 # Carga de modelo y datos (una sola vez)
@@ -174,7 +176,7 @@ with st.sidebar:
 
     fecha = st.date_input(
         "Fecha",
-        value=datetime.date(2024, 6, 1),
+        value=datetime.date(2024, 11, 20),
         min_value=datetime.date(2024, 1, 1),
         max_value=datetime.date(2024, 12, 31),
     )
@@ -191,13 +193,13 @@ with st.sidebar:
 
     st.divider()
 
-    btn_noticias = st.button("Actualizar noticias", use_container_width=True)
+    btn_noticias = st.button("Cargar eventos del día", use_container_width=True)
 
 # ---------------------------------------------------------------------------
 # Acción: actualizar noticias
 # ---------------------------------------------------------------------------
 if btn_noticias:
-    with st.spinner("Buscando eventos del día en Buenos Aires..."):
+    with st.spinner("Cargando eventos..."):
         try:
             result = news_agent.fetch_events()
             st.session_state["events"] = result.get("events", [])
@@ -233,6 +235,7 @@ if btn_predecir:
             event_store=event_store,
         )
         st.session_state["last_result"] = result
+        st.session_state["last_params"] = (linea, estacion, fecha, hora_str)
         occ_now, _ = occupancy_label(result["adjusted"])
         if "Tranquilo" not in occ_now:
             st.session_state["last_suggestion"] = find_better_time(
@@ -255,9 +258,11 @@ if st.session_state["last_result"] is not None:
     adjusted = res["adjusted"]
     event    = res["event_applied"]
 
+    p_linea, p_estacion, p_fecha, p_hora = st.session_state["last_params"]
     occ_text, _ = occupancy_label(adjusted)
 
-    st.markdown(f"#### {linea} · {estacion}")
+    st.markdown(f"#### {p_linea} · {p_estacion}")
+    st.caption(f"Calculado para el {p_fecha.strftime('%d/%m/%Y')} a las {p_hora}")
     st.markdown(f"# {occ_text}")
 
     if event is not None:
@@ -333,31 +338,29 @@ if not df_curve.empty:
 # ---------------------------------------------------------------------------
 # Panel principal — Sección 3: eventos activos
 # ---------------------------------------------------------------------------
-st.divider()
-st.subheader("Eventos activos")
-
 if st.session_state["last_update"] is not None:
+    st.divider()
     ts_str = st.session_state["last_update"].strftime("%d/%m/%Y %H:%M:%S")
+    st.subheader("Eventos activos")
     st.caption(f"Última actualización: {ts_str}")
 
-events = st.session_state["events"]
+    events = st.session_state["events"]
+    if not events:
+        st.info("No se encontraron eventos relevantes hoy.")
+    else:
+        for ev in events:
+            tipo_icon  = "📈" if ev.get("tipo") == "aumento" else "📉"
+            lineas_str = ", ".join(ev.get("lineas_afectadas", []))
+            estacs_str = ", ".join(ev.get("estaciones_afectadas", []))
+            ventana    = f"{ev.get('ventana_inicio', '?')} – {ev.get('ventana_fin', '?')}"
+            factor     = ev.get("factor", 1.0)
 
-if not events:
-    st.info("No se encontraron eventos relevantes hoy.")
-else:
-    for ev in events:
-        tipo_icon  = "📈" if ev.get("tipo") == "aumento" else "📉"
-        lineas_str = ", ".join(ev.get("lineas_afectadas", []))
-        estacs_str = ", ".join(ev.get("estaciones_afectadas", []))
-        ventana    = f"{ev.get('ventana_inicio', '?')} – {ev.get('ventana_fin', '?')}"
-        factor     = ev.get("factor", 1.0)
+            with st.container(border=True):
+                cols = st.columns([3, 1, 1, 1])
+                cols[0].markdown(f"**{tipo_icon} {ev.get('descripcion', '')}**")
+                cols[1].markdown(f"**Líneas**\n{lineas_str or '—'}")
+                cols[2].markdown(f"**Horario**\n{ventana}")
+                cols[3].markdown(f"**Factor**\n×{factor}")
 
-        with st.container(border=True):
-            cols = st.columns([3, 1, 1, 1])
-            cols[0].markdown(f"**{tipo_icon} {ev.get('descripcion', '')}**")
-            cols[1].markdown(f"**Líneas**\n{lineas_str or '—'}")
-            cols[2].markdown(f"**Horario**\n{ventana}")
-            cols[3].markdown(f"**Factor**\n×{factor}")
-
-            if estacs_str:
-                st.caption(f"Estaciones afectadas: {estacs_str}")
+                if estacs_str:
+                    st.caption(f"Estaciones afectadas: {estacs_str}")
