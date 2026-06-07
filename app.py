@@ -17,12 +17,19 @@ import news_agent
 # Configuración de página
 # ---------------------------------------------------------------------------
 st.set_page_config(
-    page_title="ViajaSentado — Predicción de carga en subte",
-    page_icon="🚇",
+    page_title="CUÁNDOViajo — Predicción de carga en subte",
+    page_icon="logo.svg",
     layout="wide",
 )
 
-st.title("ViajaSentado — Predicción de carga en subte")
+st.logo("logo.svg")
+
+col_logo, col_title = st.columns([1, 8])
+with col_logo:
+    st.image("logo.svg", width=90)
+with col_title:
+    st.title("CUÁNDOViajo")
+    st.caption("Predicción de carga en el subte de Buenos Aires")
 
 # ---------------------------------------------------------------------------
 # Inicialización de session_state

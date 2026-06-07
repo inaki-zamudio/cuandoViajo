@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <rect width="400" height="400" fill="#121418" rx="80" />
+  
+  <circle cx="200" cy="180" r="100" fill="none" stroke="#2DE1C2" stroke-width="8" stroke-dasharray="400 150" stroke-linecap="round" transform="rotate(-90 200 180)"/>
+  
+  <circle cx="200" cy="180" r="100" fill="none" stroke="#2a2e35" stroke-width="2" />
+
+  <path d="M140 140 C 140 110, 260 110, 260 140 L 260 220 C 260 230, 250 240, 240 240 L 160 240 C 150 240, 140 230, 140 220 Z" fill="#1E2229" stroke="#FFFFFF" stroke-width="6" />
+  
+  <rect x="160" y="140" width="80" height="35" rx="8" fill="#121418" />
+  
+  <rect x="170" y="150" width="12" height="15" rx="4" fill="#FFC107" />
+  <rect x="194" y="145" width="12" height="20" rx="4" fill="#FFC107" />
+  <rect x="218" y="155" width="12" height="10" rx="4" fill="#FFC107" />
+
+  <circle cx="165" cy="210" r="8" fill="#2DE1C2" />
+  <circle cx="235" cy="210" r="8" fill="#2DE1C2" />
+  
+  <line x1="200" y1="180" x2="230" y2="150" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" />
+  <circle cx="200" cy="180" r="6" fill="#FFFFFF" />
+
+  <text x="200" y="330" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="800" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">
+    CUÁNDO<tspan font-weight="300" fill="#A0AABF">Viajo</tspan>
+  </text>
+</svg>
