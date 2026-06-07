@@ -318,8 +318,13 @@ def predict(
             if isinstance(event_store, dict)
             else event_store
         )
-        ts_str = pd.Timestamp(timestamp).strftime("%H:%M")
+        ts_pd      = pd.Timestamp(timestamp)
+        ts_str     = ts_pd.strftime("%H:%M")
+        ts_fecha   = ts_pd.strftime("%Y-%m-%d")
         for event in events_list:
+            event_fecha = event.get("fecha")
+            if event_fecha and event_fecha != ts_fecha:
+                continue
             in_line    = linea    in event.get("lineas_afectadas", [])
             in_station = estacion in event.get("estaciones_afectadas", [])
             in_window  = (

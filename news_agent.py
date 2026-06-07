@@ -5,6 +5,7 @@
 EVENTS = [
     {
         "descripcion": "Recital de Coldplay en el Estadio Monumental",
+        "fecha": "2024-11-20",
         "lineas_afectadas": ["LineaD"],
         "estaciones_afectadas": ["Congreso de Tucuman", "Juramento", "Jose Hernandez"],
         "ventana_inicio": "21:30",
@@ -21,24 +22,8 @@ EVENTS = [
         ),
     },
     {
-        "descripcion": "Partido de River Plate en el Estadio Monumental",
-        "lineas_afectadas": ["LineaD"],
-        "estaciones_afectadas": ["Congreso de Tucuman", "Juramento"],
-        "ventana_inicio": "20:00",
-        "ventana_fin": "22:30",
-        "factor": 1.9,
-        "tipo": "aumento",
-        "judgment": (
-            "Con partido de River en el Monumental, la demanda histórica en el tramo "
-            "norte de LineaD sube entre 1.7x y 2.1x respecto al promedio del mismo "
-            "horario. A diferencia de los recitales, el flujo es más predecible: pico "
-            "concentrado 30-45 minutos post-pitido final. La predicción base de {base} "
-            "pasajeros subestima este efecto. Ajusto a {adjusted} pasajeros. "
-            "El mayor riesgo es el intervalo 21:45-22:15 si el partido se extiende."
-        ),
-    },
-    {
         "descripcion": "Corte total de servicio en LineaC por mantenimiento de vías",
+        "fecha": "2024-11-18",
         "lineas_afectadas": ["LineaC"],
         "estaciones_afectadas": [
             "Constitucion", "San Juan", "Independencia", "Mariano Moreno",
@@ -60,6 +45,7 @@ EVENTS = [
     },
     {
         "descripcion": "Marcha sindical con concentración en Plaza de Mayo",
+        "fecha": "2024-11-22",
         "lineas_afectadas": ["LineaA", "LineaC", "LineaD", "LineaE"],
         "estaciones_afectadas": [
             "Plaza de Mayo", "Peru", "Piedras",
