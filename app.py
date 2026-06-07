@@ -9,6 +9,7 @@ import datetime
 import os
 import streamlit as st
 import pandas as pd
+import plotly.graph_objects as go
 
 import predictor
 import news_agent
@@ -30,6 +31,12 @@ with col_logo:
 with col_title:
     st.title("CUÁNDOViajo")
     st.caption("Predicción de carga en el subte de Buenos Aires")
+
+st.markdown(
+    "Elegí una línea, estación y horario para saber si el tren va a ir lleno. "
+    "Si la ocupación es alta, te sugerimos cuándo salir para viajar más cómodo."
+)
+st.caption("Entrenado con datos de molinetes SBASE 2024 · Modelo XGBoost · Sin feed en tiempo real")
 
 # ---------------------------------------------------------------------------
 # Inicialización de session_state
@@ -126,6 +133,26 @@ _CLOSING = {
     "LineaE": {0:"23:30", 1:"23:30", 2:"23:30", 3:"23:30", 4:"23:30", 5:"23:58", 6:"22:28"},
     "LineaH": {0:"23:51", 1:"23:51", 2:"23:51", 3:"23:51", 4:"23:51", 5:"23:45", 6:"22:51"},
 }
+
+@st.cache_data
+def compute_daily_curve(linea, estacion, fecha_str, _historical_sample):
+    fecha    = datetime.date.fromisoformat(fecha_str)
+    dow      = fecha.weekday()
+    slots    = [
+        t for t in [f"{h:02d}:{m:02d}" for h in range(24) for m in [0, 15, 30, 45]]
+        if _OPENING[dow] <= t <= _CLOSING.get(linea, {}).get(dow, "23:00")
+    ]
+    records = []
+    for t in slots:
+        h, m = int(t[:2]), int(t[3:])
+        ts   = datetime.datetime(fecha.year, fecha.month, fecha.day, h, m)
+        try:
+            r = predictor.predict(linea, estacion, ts, _historical_sample)
+            records.append({"hora": t, "carga": max(0.0, r["adjusted"])})
+        except Exception:
+            records.append({"hora": t, "carga": 0.0})
+    return pd.DataFrame(records)
+
 
 model, meta = init_model()
 predictor._MODEL = model
@@ -258,7 +285,53 @@ else:
     st.info("Seleccioná los parámetros y presioná **Predecir** para ver el resultado.")
 
 # ---------------------------------------------------------------------------
-# Panel principal — Sección 2: eventos activos
+# Panel principal — Sección 2: curva diaria
+# ---------------------------------------------------------------------------
+st.divider()
+st.subheader(f"Ocupación a lo largo del día — {estacion}")
+
+mask_chart = (
+    (historical_df["LINEA"] == linea) &
+    (historical_df["ESTACION"] == estacion)
+)
+with st.spinner("Calculando curva del día..."):
+    df_curve = compute_daily_curve(linea, estacion, str(fecha), historical_df[mask_chart].copy())
+
+if not df_curve.empty:
+    max_y = max(df_curve["carga"].max() * 1.15, 150)
+    fig   = go.Figure()
+
+    fig.add_hrect(y0=0,   y1=40,    fillcolor="#22c55e", opacity=0.08, line_width=0)
+    fig.add_hrect(y0=40,  y1=80,    fillcolor="#eab308", opacity=0.08, line_width=0)
+    fig.add_hrect(y0=80,  y1=130,   fillcolor="#f97316", opacity=0.08, line_width=0)
+    fig.add_hrect(y0=130, y1=max_y, fillcolor="#ef4444", opacity=0.08, line_width=0)
+
+    fig.add_trace(go.Scatter(
+        x=df_curve["hora"], y=df_curve["carga"],
+        mode="lines", fill="tozeroy",
+        line=dict(color="#2DE1C2", width=2),
+        fillcolor="rgba(45, 225, 194, 0.12)",
+        hovertemplate="%{x} — %{y:.0f} pax<extra></extra>",
+    ))
+
+    fig.add_vline(
+        x=hora_str,
+        line_dash="dash", line_color="rgba(255,255,255,0.5)", line_width=1.5,
+    )
+
+    fig.update_layout(
+        height=240,
+        margin=dict(l=0, r=0, t=10, b=0),
+        showlegend=False,
+        xaxis=dict(showgrid=False, tickangle=-45, tickfont=dict(size=10)),
+        yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.08)"),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+# ---------------------------------------------------------------------------
+# Panel principal — Sección 3: eventos activos
 # ---------------------------------------------------------------------------
 st.divider()
 st.subheader("Eventos activos")
